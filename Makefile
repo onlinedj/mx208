@@ -6,7 +6,7 @@ client: $(objects_c)
 
 objects_s = mxserver.o connection_handler.o queue.o command_handler.o
 mxserver: $(objects_s)
-	gcc -o mxserver $(objects_s) -lpthread 
+	gcc -g -o mxserver $(objects_s) -lpthread 
 
 .PHONY: clean
 clean: 

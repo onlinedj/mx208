@@ -39,6 +39,7 @@ int dequeue(QUEUE *q, void **data_pp)
     if(q->head)
     {
         *data_pp = q->head->data;
+        q->head->data = NULL;
         NODE *p = q->head;
         if(p->next)
         {
@@ -55,7 +56,7 @@ int dequeue(QUEUE *q, void **data_pp)
     }
     else
     {
-        /*printf("nodata in q\n");*/
+        //printf("nodata in q\n");
         *data_pp = NULL;
         result = 0;
     }
@@ -79,27 +80,3 @@ int queue_size(QUEUE *q)
     return n;
 }
 
-/*int main(int argc, const char *argv[])
-{
-    QUEUE q;
-    init_queue(&q);
-    int n = 30;
-    while(n>0)
-    {
-        int *a = malloc(sizeof(int));
-        printf("malloc data=%p\n",a);
-        *a = n;
-        enqueue(&q, (void *)a);      
-        n--;
-    }
-    n = 30;
-    while(n>0)
-    {
-        int *r;
-        dequeue(&q, (void **)&r); 
-        printf("free data=%p\n",r);
-        free(r);
-        n--;
-    }
-    return 0;
-}*/
