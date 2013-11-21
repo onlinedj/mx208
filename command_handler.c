@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define BUFFER_MAX 65536
 
 static QUEUE *queues[QUEUES_SIZE];
 
@@ -56,14 +57,21 @@ void* handle_command(void *arg)
 {
     long i;
     i = (long)arg;
+    uint8_t *buffer = (uint8_t *)malloc(BUFFER_MAX);
+    memset(buffer,0,BUFFER_MAX);
     while(1)
     {
         uint32_t *header;
         if(dequeue(queues[i], (void**)&header))
         {
             uint32_t my[4] = {5,sizeof(DEVICEINFO)+sizeof(uint32_t),1,0};
-            int result = send(*(header+4),my,sizeof(uint32_t)*4,0);
+            /*int result = send(*(header+4),my,sizeof(uint32_t)*4,0);*/
+            uint8_t *tmp = buffer;
+            memcpy(tmp,my,sizeof(uint32_t)*4);
+            tmp += sizeof(uint32_t)*4;
             uint32_t data_size = sizeof(DEVICEINFO);
+            memcpy(tmp,&data_size,sizeof(uint32_t));
+
             result = send(*(header+4),&data_size,sizeof(uint32_t),0);
             DEVICEINFO info;
             strncpy(info.IssuerName,"mx tech",8);
