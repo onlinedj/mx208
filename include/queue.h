@@ -13,17 +13,16 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <pthread.h>
-#include <stdio.h>
+
+#define DEBUG_Q 0
+
+#define RESULT_SUCCESS 1
+#define RESULT_FAILED 0
 
 #define BUFFER_MAX 65536
 #define BUFFER_SIZE BUFFER_MAX*sizeof(uint8_t)
-
-#define Q_TYPE_DEVICE 0
-#define Q_TYPE_ALGORITHM 1
-#define Q_TYPE_KEY 2
-#define Q_TYPE_FILE 3
 
 typedef struct header_t {
     uint32_t func_id;

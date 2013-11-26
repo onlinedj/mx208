@@ -3,12 +3,11 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <stdio.h>
+#include <pthread.h>
 
-#include "queue.h"
 #include "command_handler.h"
 
-#define DEBUG_CONN 1
-#define REQUEST_DEVICE_INFO 1
 
 void *handle_connection(void* arg)
 {
@@ -23,17 +22,17 @@ void *handle_connection(void* arg)
         if(n>0)
         {
             uint32_t *tmp = (uint32_t *) buffer;
-            //if(DEBUG_CONN) printf("connection_handler n=%d, header :%d,%d,%d,%d\n",n, *tmp,*(tmp+1),*(tmp+2),*(tmp+3));
+            if(DEBUG_CONN) printf("connection_handler n=%d, header :%d,%d,%d,%d\n",n, *tmp,*(tmp+1),*(tmp+2),*(tmp+3));
             switch(tmp[0])
             {
-                case REQUEST_DEVICE_INFO:
+                case 1:
                     if(enqueue(get_queue(Q_TYPE_DEVICE), buffer, connfd))
                     {
                         queue_notify(get_queue(Q_TYPE_DEVICE));
                     }
                     break;
                 default:
-                   //if(DEBUG_CONN) printf("do nothing just break.");
+                   if(DEBUG_CONN) printf("do nothing just break.");
                     break;
             }
             memset(buffer,0,BUFFER_MAX);

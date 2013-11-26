@@ -14,8 +14,6 @@
 #include "connection_handler.h"
 #include "command_handler.h"
 
-#define THREAD_COUNT 4
-
 uint32_t get_ip(IFACE eth)
 {
     return 0;
@@ -30,7 +28,7 @@ int create_server_socket(uint32_t ip, uint32_t port)
     {
         return CREATE_SOCKET_FAILED; 
     }
-//TODO here we wanna have reactor model to get high performance.
+    //TODO here we wanna have reactor model to get high performance.
     //fcntl(listen_fd, F_SETFL,fcntl(listen_fd, F_GETFL) | O_NONBLOCK);
 
     memset(&serv_addr, '0', sizeof(serv_addr));
@@ -80,11 +78,11 @@ int main(int argc, char *argv[])
     {
         int conn0_fd = 0, conn1_fd = 0;
         //TODO here we wanna have reactor model to get high performance.
-        printf("loop in the mxserver\n");
+        if(DEBUG_SERVER) printf("loop in the mxserver\n");
         conn0_fd = accept(eth0_fd, (struct sockaddr*)NULL, NULL); 
         if(conn0_fd>0)
         {
-            printf("mxserver conn0_fd=%d\n",conn0_fd);
+            if(DEBUG_SERVER) printf("mxserver conn0_fd=%d\n",conn0_fd);
             pthread_t tid;
             pthread_create(&tid, NULL, handle_connection, (void*) conn0_fd);
         }

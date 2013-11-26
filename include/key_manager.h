@@ -1,7 +1,10 @@
 #ifndef KEY_MANAGER_H
 #define KEY_MANAGER_H
-#include "encrypt.h"
+
+#include "mx_std.h"
+
 #define MAX_KEY_SIZE 256 
+
 typedef struct key_st{
     u_int32_t type;
     u_int32_t index;

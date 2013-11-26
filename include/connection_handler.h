@@ -13,15 +13,7 @@
 #ifndef CONNECTION_HANDLER_H
 #define CONNECTION_HANDLER_H
 
-#include <stdio.h>
-#include <pthread.h>
+#define DEBUG_CONN 1
 
-#define HEADER_SIZE_UINT 4
-
-typedef struct message_t {
-    int msg_id;
-    int type;
-    char msg_body[256];
-} MESG;
 void *handle_connection(void *arg);
 #endif

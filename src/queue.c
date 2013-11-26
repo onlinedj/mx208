@@ -1,11 +1,9 @@
 #include "queue.h"
 
-#include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#define DEBUG 0
-#define RESULT_SUCCESS 1
-#define RESULT_FAILED 0
 
 
 int init_queue(QUEUE **q)
@@ -91,9 +89,9 @@ int enqueue(QUEUE *q, uint8_t *buffer, uint32_t connfd)
         wait_in_queue = 0;
     }
 
-    if(DEBUG) printf("node header:%u,%u,%u,%u,%u\n",node->header.func_id,node->header.data_size,node->header.param_sum,node->header.reserved,node->header.socketfd);
+    if(DEBUG_Q) printf("node header:%u,%u,%u,%u,%u\n",node->header.func_id,node->header.data_size,node->header.param_sum,node->header.reserved,node->header.socketfd);
     q->counter++;
-    if(DEBUG) printf("enq    q->counter=%d,q->node:%p,q->node pre:%p\n",q->counter,node,temp);
+    if(DEBUG_Q) printf("enq    q->counter=%d,q->node:%p,q->node pre:%p\n",q->counter,node,temp);
 
     pthread_mutex_unlock(&q->lock);
     
@@ -124,7 +122,7 @@ int dequeue(QUEUE *q, uint8_t *buffer)
         }
         free(p);
 
-        if(DEBUG) printf("deq    q->counter=%d,q->node:%p,q->node pre:%p\n",q->counter,q->head,p);
+        if(DEBUG_Q) printf("deq    q->counter=%d,q->node:%p,q->node pre:%p\n",q->counter,q->head,p);
         q->counter--;
         result = RESULT_SUCCESS;
     }

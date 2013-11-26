@@ -14,11 +14,11 @@
 #ifndef MX_SERVER_H
 #define MX_SERVER_H
 
+#define DEBUG_SERVER 1
 #define SOCKET_FD_MAX 10
 #define SOCKET_PORT_NORMAL 8990
 #define SOCKET_PORT_MANAGE 8992
 #define CREATE_SOCKET_FAILED -1;
-
 
 typedef enum {
     eth0,eth1

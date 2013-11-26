@@ -1,4 +1,4 @@
-#include "commands.h"
+#include "../include/commands.h"
 
 #include <stdio.h>
 

@@ -7,9 +7,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define THREAD_COUNT 4
+#include "key_manager.h"
+#include "device_manager.h"
 
-static QUEUE *queues[QUEUES_SIZE];
+
+static QUEUE *queues[THREAD_COUNT];
 
 void init_queues()
 {
@@ -36,18 +38,6 @@ QUEUE* get_queue(int type)
     return queues[type];
 }
 
-typedef struct DeviceInfo_st{
-    unsigned char IssuerName[40];
-    unsigned char DeviceName[16];
-    unsigned char DeviceSerial[16];
-    uint32_t DeviceVersion;
-    uint32_t StandardVersion;
-    uint32_t AsymAlgAbility[2];
-    uint32_t SymAlgAbility;
-    uint32_t HashAlgAbility;
-    uint32_t BufferSize;
-} DEVICEINFO;
-
 void* handle_command(void *arg)
 {
     uint32_t i;
@@ -60,7 +50,7 @@ void* handle_command(void *arg)
         if(dequeue(queues[i], buffer))
         {
             uint32_t *tmp = (uint32_t *)buffer;
-            printf("in command_handler buffer=%d,%d,%d,%d,%d\n",tmp[0],tmp[1],tmp[2],tmp[3],tmp[4]);
+            if(DEBUG_COMM) printf("in command_handler buffer=%d,%d,%d,%d,%d\n",tmp[0],tmp[1],tmp[2],tmp[3],tmp[4]);
             switch(tmp[0])
             {
                 case 1:
@@ -71,7 +61,7 @@ void* handle_command(void *arg)
                         uint32_t data_size = sizeof(DEVICEINFO);
                         memcpy(output+sizeof(uint32_t)*4,&data_size,sizeof(uint32_t));
 
-                        DEVICEINFO info;
+                        struct DeviceInfo_st info;
                         memcpy(info.IssuerName,"mx tech",8);
                         memcpy(info.DeviceName,"mx 208",7);
                         memcpy(info.DeviceSerial,"123456789",10);
@@ -83,10 +73,10 @@ void* handle_command(void *arg)
                         info.HashAlgAbility = 6;
                         info.BufferSize = 1024;
                         memcpy(output+sizeof(uint32_t)*5,&info,sizeof(info));
-                        int total = sizeof(uint32_t)*5+sizeof(DEVICEINFO);
+                        int total = sizeof(uint32_t)*5+sizeof(info);
 
                         int result = send(*(tmp+4),output,total,0);
-                        printf("handle_command sockfd=%u, result=%d,total=%d\n",*(tmp+4),result,total);
+                        if(DEBUG_COMM) printf("handle_command sockfd=%u, result=%d,total=%d\n",*(tmp+4),result,total);
 
                         break;
                     }
