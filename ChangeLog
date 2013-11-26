@@ -1,0 +1,12 @@
+2013-11-25   Jacky Yang  <yangxinle@minxintech.com>
+  * use cmake to handle the compile.
+  * Version 0.0.4
+2013-11-21   Jacky Yang  <yangxinle@minxintech.com>
+  * create command_handler for process client request.
+  * Version 0.0.3
+2013-11-18   Jacky Yang  <yangxinle@minxintech.com>
+  * create queue to store commands' data.
+  * Version 0.0.2
+2013-11-14   Jacky Yang  <yangxinle@minxintech.com>
+  * init base structure create & handles socket connection
+  * Version 0.0.1

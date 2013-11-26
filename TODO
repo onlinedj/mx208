@@ -1,0 +1,2 @@
+fix deadlock bug led to server stops.
+add doxygen support.

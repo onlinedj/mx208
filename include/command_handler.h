@@ -18,7 +18,6 @@
 #include "queue.h"
 
 void init_queues();
-void start_command_threads();
 void destroy_queues();
 void* handle_command(void *arg);
 QUEUE* get_queue(int type);

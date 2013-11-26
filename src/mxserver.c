@@ -14,6 +14,8 @@
 #include "connection_handler.h"
 #include "command_handler.h"
 
+#define THREAD_COUNT 4
+
 uint32_t get_ip(IFACE eth)
 {
     return 0;
@@ -29,7 +31,7 @@ int create_server_socket(uint32_t ip, uint32_t port)
         return CREATE_SOCKET_FAILED; 
     }
 //TODO here we wanna have reactor model to get high performance.
-//    fcntl(listen_fd, F_SETFL,fcntl(listen_fd, F_GETFL) | O_NONBLOCK);
+    //fcntl(listen_fd, F_SETFL,fcntl(listen_fd, F_GETFL) | O_NONBLOCK);
 
     memset(&serv_addr, '0', sizeof(serv_addr));
 
@@ -50,39 +52,48 @@ int create_server_socket(uint32_t ip, uint32_t port)
 
 }
 
+void start_command_threads()
+{
+    uint32_t i = 0;
+    for(i = 0;i < THREAD_COUNT; i++) 
+    {
+        pthread_t tid;
+        pthread_create(&tid,NULL,handle_command, (void *) i);
+    }
+    
+}
 
 
 int main(int argc, char *argv[])
 {
     int eth0_fd = 0, eth1_fd = 0; 
-    long conn0_fd = 0, conn1_fd = 0;
 
     init_queues();
-    printf("init queue ok\n");
     start_command_threads();
-    printf("init command threads ok\n");
 
     //init connection handler.
     //TODO use get_ip instead in future.
     eth0_fd = create_server_socket(INADDR_ANY,SOCKET_PORT_NORMAL);
-    eth1_fd = create_server_socket(INADDR_ANY,SOCKET_PORT_MANAGE);
+    /*eth1_fd = create_server_socket(INADDR_ANY,SOCKET_PORT_MANAGE);*/
     
     while(1)
     {
+        int conn0_fd = 0, conn1_fd = 0;
         //TODO here we wanna have reactor model to get high performance.
+        printf("loop in the mxserver\n");
         conn0_fd = accept(eth0_fd, (struct sockaddr*)NULL, NULL); 
         if(conn0_fd>0)
         {
+            printf("mxserver conn0_fd=%d\n",conn0_fd);
             pthread_t tid;
             pthread_create(&tid, NULL, handle_connection, (void*) conn0_fd);
-            printf("create connection thread ok\n");
         }
-        conn1_fd = accept(eth1_fd, (struct sockaddr*)NULL, NULL); 
+        /*conn1_fd = accept(eth1_fd, (struct sockaddr*)NULL, NULL); 
         if(conn1_fd>0)
         {
             pthread_t tid;
             pthread_create(&tid, NULL, handle_connection, (void*) conn1_fd);
-        }
+        }*/
     }
 
 }

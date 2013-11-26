@@ -8,6 +8,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h> 
+#include <pthread.h>
+
+void *send_info(void *arg)
+{
+    return NULL;
+}
 
 int main(int argc, char *argv[])
 {
@@ -43,45 +49,30 @@ int main(int argc, char *argv[])
        printf("\n Error : Connect Failed \n");
        return 1;
     } else {
+        /*int i;
+        for(i=0;i<5;i++)
+        {
+            pthread_t tid;
+            pthread_create(&tid,NULL,send_info,NULL);
+        }*/
+        uint8_t buffer[65536];
         while(1) 
         {
             uint32_t info[4] = {1,counter*10,counter*20,counter*30};
-            
             int result = send(sockfd, info, sizeof(uint32_t)*4,0); 
-            printf("%d send result=%d,errno=%d\n",counter,result,errno);
+            printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+            memset(buffer,0,65536);
             while(1)
             {
-                uint32_t header[4] = {0,0,0,0};
-                memset(header,'0',sizeof(uint32_t)*4);
-                int n = recv(sockfd,header,sizeof(uint32_t)*4,0); 
-                printf("recv success!%d,%d,%d,%d\n",header[0],header[1],header[2],header[3]);
+                uint32_t *tmp = (uint32_t *)buffer;
+                int n = recv(sockfd,buffer,65536,0); 
+                printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
                 break;
-                /*if(n>0)
-                {
-                    int * data;          
-                    int m = recv(sockfd,data,header[1],0);
-                    if(m>0)
-                    {
-                    }
-                }*/
             }
-            sleep(5);
+            usleep(2000);
         }
     }
 
-    /*while (1)
-    {
-        n = recv(sockfd, recvBuff, sizeof(recvBuff)-1,0);
-        recvBuff[n] = 0;
-        if(fputs(recvBuff, stdout) == EOF)
-        {
-            printf("endof receive buff\n");
-        }
-        if(n < 0)
-        {
-            sleep(1);
-        } 
-    } */
-
     return 0;
 }
+
