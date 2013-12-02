@@ -22,13 +22,19 @@ void *handle_connection(void* arg)
         if(n>0)
         {
             uint32_t *tmp = (uint32_t *) buffer;
-            if(DEBUG_CONN) printf("connection_handler n=%d, header :%d,%d,%d,%d\n",n, *tmp,*(tmp+1),*(tmp+2),*(tmp+3));
-            switch(tmp[0])
+            if(DEBUG_CONN) printf("connection_handler n=%d, header :%d,%d,%d,%d,%d,%d\n",n, *tmp,*(tmp+1),*(tmp+2),*(tmp+3),*(tmp+4),*(tmp+5));
+            int command = tmp[0];
+            int type = GET_TYPE(command);
+            switch(type)
             {
-                case 1:
-                    if(enqueue(get_queue(Q_TYPE_DEVICE), buffer, connfd))
+                case TYPE_DEVICE:
+                case TYPE_KEY:
+                case TYPE_ALGORITHM:
+                case TYPE_FILE:
+                    if(DEBUG_CONN) printf("enqueue type=%d\n",GET_TYPE(command));
+                    if(enqueue(get_queue(type), buffer, connfd))
                     {
-                        queue_notify(get_queue(Q_TYPE_DEVICE));
+                        queue_notify(get_queue(GET_TYPE(command)));
                     }
                     break;
                 default:

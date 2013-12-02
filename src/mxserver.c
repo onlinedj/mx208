@@ -6,10 +6,12 @@
 #include <stdio.h>//for printf
 #include <errno.h>//for get err no.
 #include <arpa/inet.h>//for inet macros
+#include <netinet/in.h>
 #include <sys/types.h>//for legency dependency
 #include <string.h>//for memset
 #include <unistd.h>
 #include <fcntl.h> //for setting non-blocking
+#include <stdlib.h>
 
 #include "connection_handler.h"
 #include "command_handler.h"
@@ -34,7 +36,7 @@ int create_server_socket(uint32_t ip, uint32_t port)
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(ip);
+    serv_addr.sin_addr.s_addr = ip;
     serv_addr.sin_port = htons(port); 
 
     if(bind(listen_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)))
@@ -62,16 +64,18 @@ void start_command_threads()
 }
 
 
+
 int main(int argc, char *argv[])
 {
     int eth0_fd = 0, eth1_fd = 0; 
 
     init_queues();
     start_command_threads();
+    write_device_info();
 
     //init connection handler.
     //TODO use get_ip instead in future.
-    eth0_fd = create_server_socket(INADDR_ANY,SOCKET_PORT_NORMAL);
+    eth0_fd = create_server_socket(inet_addr(argv[1]),(uint32_t)atoi(argv[2]));
     /*eth1_fd = create_server_socket(INADDR_ANY,SOCKET_PORT_MANAGE);*/
     
     while(1)
@@ -93,5 +97,6 @@ int main(int argc, char *argv[])
             pthread_create(&tid, NULL, handle_connection, (void*) conn1_fd);
         }*/
     }
+    destroy_queues();
 
 }

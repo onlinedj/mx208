@@ -61,7 +61,10 @@ void read_buffer(uint8_t *buffer, NODE *node)
     node->header.param_sum = *(tmp+2);
     node->header.reserved = 0;
     if(node->header.data_size > 0)
+	{
         node->data = (uint8_t *)malloc(node->header.data_size);
+        memcpy(node->data,buffer+16,node->header.data_size);
+	}
     else 
         node->data = NULL;
 }

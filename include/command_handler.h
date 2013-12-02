@@ -14,15 +14,11 @@
 #define COMMAND_HANDLER_H
 
 #include "queue.h"
+#include "commands.h"
 
 #define DEBUG_COMM 1
 
 #define THREAD_COUNT 4
-
-#define Q_TYPE_DEVICE 0
-#define Q_TYPE_ALGORITHM 1
-#define Q_TYPE_KEY 2
-#define Q_TYPE_FILE 3
 
 void init_queues();
 void destroy_queues();

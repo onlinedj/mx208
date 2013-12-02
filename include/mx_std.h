@@ -10,6 +10,8 @@
 *      History:
 *
 ********************************************************************************/
+#ifndef MX_STD_H
+#define MX_STD_H
 #include <stdint.h>
 //symmetric cryptographic types
 #define SGD_SM1_ECB 0x00000101 
@@ -479,3 +481,4 @@ uint32_t SDF_DeleteFile(
   uint32_t uiNameLen);
 
 
+#endif
