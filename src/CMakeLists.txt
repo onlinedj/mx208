@@ -5,6 +5,7 @@ set(src_SRCS
   queue.c
   device_manager.c
   algorithm_manager.c
+  key_manager.c
   )
 
 add_executable(mxserver ${src_SRCS})
