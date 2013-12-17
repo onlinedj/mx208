@@ -2,3 +2,4 @@ cscope*
 tags
 *.o
 *.a
+build

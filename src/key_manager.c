@@ -15,14 +15,44 @@ HEADER_INFO header_info;
 KEYINFO keys[MAX_KEY_SIZE];
 KEKINFO keks[MAX_KEY_SIZE];
 
-int add_kek(uint32_t index, KEKINFO kekinfo)
+int update_header(int type, int add)
+{
+    if(add)
+    {
+        if(type == TYPE_KEK)
+        {
+            header_info.kek_size+=sizeof(KEKINFO);
+            header_info.kek_count++;
+        }
+        else
+        {
+            header_info.key_size+=sizeof(KEYINFO);
+            header_info.key_count++; 
+        }
+    }else{
+        if(type == TYPE_KEK)
+        {
+            header_info.kek_size-=sizeof(KEKINFO);
+            header_info.kek_count--;
+        }
+        else
+        {
+            header_info.key_count--; 
+            header_info.key_size-=sizeof(KEYINFO);
+        }
+    }
+    return 0;
+}
+
+int add_kek(KEKINFO kekinfo)
 {
     
-    if(index > 0 && index < MAX_KEY_SIZE &&header_info.count+1<MAX_KEY_SIZE)
+    int index = kekinfo.index;
+    if(index > 0 && index < MAX_KEY_SIZE &&header_info.kek_count+1<MAX_KEY_SIZE)
     {
-         int kek_count = header_info.kek_size/sizeof(KEKINFO);
-         keks[kek_count].index = index;
-         keks[kek_count].data = kekinfo.data;
+         /*keks[header_info.kek_count].index = index;*/
+         /*memcpy(keks[header_info.kek_count].data,kekinfo,data,KEK_LENGTH);*/
+        keks[header_info.kek_count] = kekinfo;
     }
     update_header(TYPE_KEK,1);
     return 0;
@@ -31,26 +61,25 @@ int add_kek(uint32_t index, KEKINFO kekinfo)
 int rm_kek(uint32_t index)
 {
     int i;
-    int kek_count = header_info.kek_size/sizeof(KEKINFO);
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<kek_count;i++)
+        for(i=0;i<header_info.kek_count;i++)
         {
             if(keks[i].index == index) 
             {
-                bzero(keks[i]); 
+                bzero(&keks[i],sizeof(KEKINFO)); 
                 break;
             }
         }
-        for(;i<kek_count;i++)
+        for(;i<header_info.kek_count;i++)
         {
-            if(i+1<kek_count)
+            if(i+1<header_info.kek_count)
             {
                 keks[i] = keks[i+1];
             }
             else 
             {
-                bzero(kek[i]); 
+                bzero(&keks[i],sizeof(KEKINFO)); 
             }
         }
         update_header(TYPE_KEK,0);
@@ -62,10 +91,9 @@ int rm_kek(uint32_t index)
 int get_kek(uint32_t index, KEKINFO *kekinfo)
 {
     int i;
-    int kek_count = header_info.kek_size/sizeof(KEKINFO);
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<kek_count;i++)
+        for(i=0;i<header_info.kek_count;i++)
         {
             if(keks[i].index == index) 
             {
@@ -76,15 +104,14 @@ int get_kek(uint32_t index, KEKINFO *kekinfo)
     return 0;
 }
 
-int add_key(uint32_t type, uint32_t index, KEYINFO keyinfo)
+int add_key(KEYINFO keyinfo)
 {
-    
-    if(index > 0 && index < MAX_KEY_SIZE &&header_info.count+1<MAX_KEY_SIZE)
+    uint32_t type = keyinfo.type;
+    uint32_t index = keyinfo.index;
+    if(index > 0 && index < MAX_KEY_SIZE &&header_info.key_count+1<MAX_KEY_SIZE)
     {
-         keys[header_info.count].type = type;
-         keys[header_info.count].index = index;
-         keys[header_info.count].access = 0;
-         keys[header_info.count].data = keyinfo.data;
+         keys[header_info.key_count] = keyinfo;
+         keys[header_info.key_count].access = 0;
     }
     update_header(type,1);
     return 0;
@@ -95,23 +122,23 @@ int rm_key(uint32_t type, uint32_t index)
     int i;
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<header_info.count;i++)
+        for(i=0;i<header_info.key_count;i++)
         {
             if(keys[i].index == index && keys[i].type == type) 
             {
-                bzero(keys[i]); 
+                bzero(&keys[i],sizeof(KEKINFO)); 
                 break;
             }
         }
-        for(;i<header_info.count;i++)
+        for(;i<header_info.key_count;i++)
         {
-            if(i+1<header_info.count)
+            if(i+1<header_info.key_count)
             {
                 keys[i] = keys[i+1];
             }
             else 
             {
-                bzero(key[i]); 
+                bzero(&keys[i],sizeof(KEKINFO)); 
             }
         }
         update_header(type,0);
@@ -125,7 +152,7 @@ int get_key(uint32_t type, uint32_t index, KEYINFO *keyinfo)
     int i;
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<header_info.count;i++)
+        for(i=0;i<header_info.key_count;i++)
         {
             if(keys[i].index == index && keys[i].type == type) 
             {
@@ -136,28 +163,6 @@ int get_key(uint32_t type, uint32_t index, KEYINFO *keyinfo)
     return 0;
 }
 
-int update_header(int type, int add)
-{
-    if(add)
-    {
-        if(type == TYPE_KEK)
-            header_info.kek_size+=sizeof(KEKINFO);
-        else
-        {
-            header_info.key_size+=sizeof(KEYINFO);
-            header_info.key_count++; 
-        }
-    }else{
-        if(type == TYPE_KEK)
-            header_info.kek_size-=sizeof(KEKINFO);
-        else
-        {
-            header_info.key_count--; 
-            header_info.key_size-=sizeof(KEYINFO);
-        }
-    }
-    return 0;
-}
 
 int load_all()
 {
@@ -171,7 +176,7 @@ int load_all()
         FlashUserInfo userinfo;
         userinfo.addr = SPI_KEY_START;
         userinfo.len = sizeof(HEADER_INFO);
-        userinfo.buf = header_info;
+        userinfo.buf = &header_info;
         int error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         
         printf("read keyheader errorno=%d\n",error);
@@ -196,9 +201,9 @@ int load_all()
         printf("open failed:%s\n", strerror(errno));
         return (-1);
     }
-    
 
 }
+
 int save_all()
 {
     /*alloc_buffer(keys);*/
@@ -242,17 +247,36 @@ int save_all()
 
 int process_command_key(uint8_t *params, uint8_t *output)
 {
-    int result = 0;
+    int process_result = 0;
     HEADER header;
     get_header(&header,&params);
     switch(header.func_id)
     {
     case GET_KEY_ACCESS:
-        get_private_key_access();
-        break;
+        {
+            uint32_t index_size = get_int(&params);
+            uint32_t index = get_int(&params);
+            uint8_t *pwd;
+            get_data(&params,pwd);
+            uint32_t pwd_len = get_int(&params);
+            uint32_t result = get_private_key_access(index,pwd,pwd_len);
+            uint32_t out_header[4] = {GET_KEY_ACCESS,1,sizeof(uint32_t)*2,0};
+            memcpy(output,out_header,sizeof(uint32_t)*4);
+            uint32_t out_data[2] = {32,result};
+            memcpy(output,out_data,sizeof(uint32_t)*2);
+            break;
+        }
     case RELEASE_KEY_ACCESS:
-        release_private_key_access();
-        break;
+        {
+            uint32_t index_size = get_int(&params);
+            uint32_t index = get_int(&params);
+            uint32_t result = release_private_key_access(index);
+            uint32_t out_header[4] = {RELEASE_KEY_ACCESS,1,sizeof(uint32_t)*2,0};
+            memcpy(output,out_header,sizeof(uint32_t)*4);
+            uint32_t out_data[2] = {32,result};
+            memcpy(output,out_data,sizeof(uint32_t)*2);
+            break;
+        }
     case EXPORT_SIGN_PUB_KEY_RSA:
         //TODO
         break;
@@ -260,22 +284,42 @@ int process_command_key(uint8_t *params, uint8_t *output)
         //TODO
         break;
     case EXPORT_SIGN_PUB_KEY_ECC:
-        export_sign_public_key_ecc();
-        break;
+        {
+            uint32_t index_size = get_int(&params);
+            uint32_t index = get_int(&params);
+            ECCrefPublicKey key;
+            export_sign_public_key_ecc(index,&key);
+            uint32_t out_data_len = sizeof(ECCrefPublicKey);
+            uint32_t out_header[4] = {EXPORT_SIGN_PUB_KEY_ECC,1,sizeof(uint32_t)+out_data_len,0};
+            memcpy(output,out_header,sizeof(uint32_t)*4);
+            memcpy(output,&out_data_len,sizeof(uint32_t));
+            memcpy(output,&key,out_data_len);
+            break;
+        }
     case EXPORT_ENC_PUB_KEY_ECC:
-        export_enc_public_key_ecc();
-        break;
+        {
+            uint32_t index_size = get_int(&params);
+            uint32_t index = get_int(&params);
+            ECCrefPublicKey key;
+            export_enc_public_key_ecc(index,&key);
+            uint32_t out_data_len = sizeof(ECCrefPublicKey);
+            uint32_t out_header[4] = {EXPORT_SIGN_PUB_KEY_ECC,1,sizeof(uint32_t)+out_data_len,0};
+            memcpy(output,out_header,sizeof(uint32_t)*4);
+            memcpy(output,&out_data_len,sizeof(uint32_t));
+            memcpy(output,&key,out_data_len);
+            break;
+        }
     case IMPORT_SESSION_KEY:
-        import_session_key();
+        //TODO
         break;
     case DESTROY_SESSION_KEY:
-        destroy_session_key();
+        //TODO
         break;
     default:
         printf("no command found in key_manager_process\n");
         break;
     }
-    return result;
+    return process_result;
 }
 
 
@@ -303,7 +347,7 @@ int get_private_key_access(
   uint8_t *pwd,
   uint32_t pwd_len)
 {
-    int result = -1;
+    int result = 1;
     if(!check_passwd(pwd,pwd_len)) {
         result = set_private_key_access(index, ACCESS_ALLOW); 
     }
@@ -313,7 +357,7 @@ int get_private_key_access(
 int release_private_key_access (
   uint32_t index)
 {
-    int result = -1;
+    int result = 1;
     result = set_private_key_access(index, ACCESS_ALLOW); 
     return result;
 }
@@ -375,13 +419,19 @@ int export_enc_public_key_ecc(
 
 }
 
-int import_session_key (
+/*int import_session_key (
   uint8_t *pucKey,
   uint32_t uiKeyLength,
-  void **phKeyHandle);
+  void **phKeyHandle)
+{
+
+}
 
 int destory_session_key (
-  void *hKeyHandle);
+  void *hKeyHandle)
+{
+
+}*/
 
 
 /*uint32_t SDF_ImportKeyWithISK_RSA (

@@ -12,7 +12,7 @@
 #define TYPE_ENC_PUB 2
 #define TYPE_ENC_PRI 3
 #define TYPE_KEK 4
-//every key kas two type
+//every key has two encrypt type
 #define TYPE_RSA_PUB 0
 #define TYPE_RSA_PRI 1
 #define TYPE_ECC_PUB 2
@@ -31,8 +31,9 @@
 
 typedef struct header_st {
     uint32_t key_size;
+    uint32_t key_count;
     uint32_t kek_size;
-    uint32_t count;//key count
+    uint32_t kek_count;
     uint32_t reserved;
 } HEADER_INFO;
 
@@ -57,11 +58,11 @@ typedef struct key_st{
 
 
 int get_key(uint32_t type, uint32_t index, KEYINFO *keyinfo);
-int add_key(uint32_t type, uint32_t index, KEYINFO keyinfo);
+int add_key(KEYINFO keyinfo);
 int rm_key(uint32_t type, uint32_t index);
 
 int get_kek(uint32_t index, KEKINFO *kekinfo);
-int add_kek(uint32_t index, KEYINFO keyinfo);
+int add_kek(KEKINFO kekinfo);
 int rm_kek(uint32_t index);
 
 /*int set_private_key_access(uint32_t index, uint32_t allow);*/

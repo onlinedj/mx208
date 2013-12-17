@@ -6,6 +6,7 @@ set(src_SRCS
   device_manager.c
   algorithm_manager.c
   key_manager.c
+  data_parser.c
   )
 
 add_executable(mxserver ${src_SRCS})
