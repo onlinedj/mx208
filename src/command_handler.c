@@ -48,6 +48,7 @@ int process_command(int type, uint8_t *params, uint8_t *result)
         total = process_command_device(params, result);
         break;
     case TYPE_KEY:
+        total = process_command_key(params, result);
         break;
     case TYPE_ALGORITHM:
         total = process_command_algorithm(params,result);
@@ -72,7 +73,7 @@ void* handle_command(void *arg)
         if(dequeue(queues[type], buffer))
         {
             uint32_t *tmp = (uint32_t *)buffer;
-            if(DEBUG_COMM) printf("in command_handler %d buffer=%d,%d,%d,%d,%d\n",type,tmp[0],tmp[1],tmp[2],tmp[3],tmp[4]);
+            if(DEBUG_COMM) printf("in command_handler %d buffer=%d,%d,%d,%d,%d,%d,%d\n",type,tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],tmp[6]);
             int total = 0;
             if((total = process_command(type, buffer, output)) > 0)
             {

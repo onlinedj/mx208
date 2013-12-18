@@ -2,6 +2,9 @@
 #define KEY_MANAGER_H
 
 #include "mx_std.h"
+//do some test
+#define KEY_TEST 1
+#define DEBUG 1
 
 #define PWD_MAX_LENGTH 8
 #define ACCESS_ALLOW 1
@@ -56,6 +59,9 @@ typedef struct key_st{
     KEYDATA data;
 } KEYINFO;
 
+#ifdef KEY_TEST
+int mock_add_keys();
+#endif
 
 int get_key(uint32_t type, uint32_t index, KEYINFO *keyinfo);
 int add_key(KEYINFO keyinfo);

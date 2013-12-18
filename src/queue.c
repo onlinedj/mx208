@@ -60,6 +60,7 @@ void read_buffer(uint8_t *buffer, NODE *node)
     node->header.data_size = *(tmp+1);
     node->header.param_sum = *(tmp+2);
     node->header.reserved = 0;
+    printf("read buffer %d,%d,%d,%d\n",*tmp,*(tmp+1),*(tmp+2),*(tmp+3));
     if(node->header.data_size > 0)
 	{
         node->data = (uint8_t *)malloc(node->header.data_size);

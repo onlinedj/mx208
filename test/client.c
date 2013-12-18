@@ -14,6 +14,7 @@
 #include "mx_std.h"
 #include "commands.h"
 
+
 void *send_info(void *arg)
 {
     return NULL;
@@ -193,6 +194,113 @@ int main(int argc, char *argv[])
                         break;
                     }
                     memset(buffer,0,65536);
+                }
+                break;
+            case 3:
+                {
+                    uint32_t info[4] = {GET_KEY_ACCESS,sizeof(uint32_t)*5+8,3,0};
+                    printf("get key access=%d\n",GET_KEY_ACCESS);
+                    memcpy(buffer,info,sizeof(uint32_t)*4);
+                    uint32_t params[2] = {4,10};
+                    memcpy(buffer+16,params,sizeof(uint32_t)*2);
+                    uint32_t pwd_len = 8;
+                    memcpy(buffer+16+8,&pwd_len,sizeof(uint32_t));
+                    uint8_t pwd[8] = {1,2,3,4,5,6,7,8};
+                    memcpy(buffer+24+4,pwd,pwd_len);
+                    uint32_t len[2] = {4,8};
+                    memcpy(buffer+36,len,sizeof(uint32_t)*2);
+                    int result = send(sockfd, buffer, 44,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
+                }
+                break;
+            case 4:
+                {
+                    uint32_t info[4] = {RELEASE_KEY_ACCESS,sizeof(uint32_t)*2,1,0};
+                    memcpy(buffer,info,sizeof(uint32_t)*4);
+                    uint32_t params[2] = {4,10};
+                    memcpy(buffer+16,params,sizeof(uint32_t)*2);
+                    int result = send(sockfd, buffer, sizeof(uint32_t)*24,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                }
+                break;
+            case 5:
+                {
+                    uint32_t info[4] = {EXPORT_ENC_PUB_KEY_ECC,sizeof(uint32_t)*2,1,0};
+                    memcpy(buffer,info,sizeof(uint32_t)*4);
+                    uint32_t params[2] = {4,10};
+                    memcpy(buffer+16,params,sizeof(uint32_t)*2);
+                    int result = send(sockfd, buffer, sizeof(uint32_t)*24,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        ECCrefPublicKey key;
+                        memcpy(&key,buffer+20,sizeof(ECCrefPublicKey));
+
+                        printf("keyinfo start:\n");
+                        int i;
+                        for(i=0;i<32;i++)
+                        {
+                            printf("%02x",key.x[i]); 
+                        }
+                        printf("\n");
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
+                }
+                break;
+            case 6:
+                {
+                    uint32_t info[4] = {EXPORT_SIGN_PUB_KEY_ECC,sizeof(uint32_t)*2,1,0};
+                    memcpy(buffer,info,sizeof(uint32_t)*4);
+                    uint32_t params[2] = {4,10};
+                    memcpy(buffer+16,params,sizeof(uint32_t)*2);
+                    int result = send(sockfd, buffer, sizeof(uint32_t)*24,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        
+                        ECCrefPublicKey key;
+                        memcpy(&key,buffer+20,sizeof(ECCrefPublicKey));
+
+                        printf("keyinfo start:\n");
+                        int i;
+                        for(i=0;i<32;i++)
+                        {
+                            printf("%02x",key.x[i]); 
+                        }
+                        printf("\n");
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
                 }
                 break;
             default:

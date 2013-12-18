@@ -15,6 +15,7 @@
 
 #include "connection_handler.h"
 #include "command_handler.h"
+#include "key_manager.h"
 
 uint32_t get_ip(IFACE eth)
 {
@@ -72,6 +73,10 @@ int main(int argc, char *argv[])
     init_queues();
     start_command_threads();
     write_device_info();
+
+#ifdef KEY_TEST
+    mock_add_keys();
+#endif
 
     //init connection handler.
     //TODO use get_ip instead in future.
