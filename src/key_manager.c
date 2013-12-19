@@ -348,11 +348,31 @@ int process_command_key(uint8_t *params, uint8_t *output)
             break;
         }
     case IMPORT_SESSION_KEY:
-        //TODO
-        break;
+        {
+            uint8_t buffer[BUFFER_MAX];
+            uint32_t key_size = get_data(&params,buffer);
+            void *handle;
+            import_session_key(buffer,key_size,&handle);
+            printf("import session key %p %016lx\n",handle,(uint64_t)handle);
+            uint32_t out_header[4] = {IMPORT_SESSION_KEY,sizeof(uint32_t)*2,1,0};
+            memcpy(output,out_header,sizeof(uint32_t)*4);
+            memcpy(output+16,&key_size,sizeof(uint32_t));
+            memcpy(output+20,&handle,sizeof(uint64_t));
+            process_result = sizeof(uint32_t)*7;
+            break;
+        }
+        
     case DESTROY_SESSION_KEY:
-        //TODO
-        break;
+        {
+            uint32_t handle_size = get_int(&params);
+            uint64_t handle = get_long(&params);
+            uint32_t result = destroy_session_key((void*)handle);
+
+            uint32_t out_header[4] = {DESTROY_SESSION_KEY,0,0,result};
+            memcpy(output,out_header,sizeof(uint32_t)*4);
+            process_result = sizeof(uint32_t)*4;
+            break;
+        }
     default:
         printf("no command found in key_manager_process\n");
         break;
@@ -486,19 +506,24 @@ int mock_add_keys()
 }
 #endif
 
-/*int import_session_key (
-  uint8_t *pucKey,
-  uint32_t uiKeyLength,
-  void **phKeyHandle)
+int import_session_key (
+  uint8_t *key,
+  uint32_t keylen,
+  void **handle)
 {
-
+    *handle = malloc(keylen);
+    memcpy(*handle,key,keylen);
+    printf("session key create %p\n",*handle);
+    return 0;
 }
 
-int destory_session_key (
-  void *hKeyHandle)
+int destroy_session_key (
+  void *handle)
 {
-
-}*/
+    printf("session key destroy %p\n",handle);
+    free(handle);
+    return 0;
+}
 
 
 /*uint32_t SDF_ImportKeyWithISK_RSA (

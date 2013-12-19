@@ -14,6 +14,7 @@
 #include "mx_std.h"
 #include "commands.h"
 
+uint64_t handle;
 
 void *send_info(void *arg)
 {
@@ -26,7 +27,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr; 
     int counter = 0;
 
-    if(argc != 4)
+    if(argc < 4)
     {
         printf("\n Usage: %s <ip of server> \n",argv[0]);
         return 1;
@@ -297,6 +298,61 @@ int main(int argc, char *argv[])
                             printf("%02x",key.x[i]); 
                         }
                         printf("\n");
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
+                }
+                break;
+            case 7:
+                {
+                    uint8_t session_key[32]={12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12};
+                    uint32_t info[4] = {IMPORT_SESSION_KEY,sizeof(uint32_t)*3+32,2,0};
+                    memcpy(buffer,info,sizeof(uint32_t)*4);
+                    uint32_t session_len = 32;
+                    memcpy(buffer+16,&session_len,sizeof(uint32_t));
+                    memcpy(buffer+20,session_key,32);
+                    uint32_t session_len_len = 4;
+                    memcpy(buffer+52,&session_len_len, sizeof(uint32_t));
+                    memcpy(buffer+56,&session_len, sizeof(uint32_t));
+
+                    int result = send(sockfd, buffer, 60,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        
+                        uint64_t *tmp64 = (uint64_t *)(buffer+20);
+
+                        handle = *tmp64;
+                        printf("import ok handle=%0lu\n",handle);
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
+                }
+                break;
+            case 8:
+                {
+                    uint32_t info[4] = {DESTROY_SESSION_KEY,sizeof(uint32_t)*3+32,2,0};
+                    memcpy(buffer,info,sizeof(uint32_t)*4);
+                    uint32_t handle_len = 4;
+                    memcpy(buffer+16,&handle_len,sizeof(uint32_t));
+                    handle = atol(argv[4]);
+                    memcpy(buffer+20,&handle,sizeof(uint64_t));
+
+                    int result = send(sockfd, buffer, 28,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        
                         break;
                     }
                     memset(buffer,0,65536);

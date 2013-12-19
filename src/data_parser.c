@@ -14,6 +14,15 @@ uint32_t get_int(uint8_t **buffer)
     return result;
 }
 
+uint64_t get_long(uint8_t **buffer)
+{
+//    printf("buffer=%p,bufferp=%p,bufferpp=%p\n",*buffer,buffer,&buffer);
+    uint64_t result = GET_LONG(*buffer);
+    printf("result=%u\n",result);
+    *buffer+=LONG_SIZE;
+    return result;
+}
+
 int get_header(HEADER *header, uint8_t **buffer)
 {
     header->func_id = get_int(buffer);
