@@ -75,7 +75,11 @@ int main(int argc, char *argv[])
     write_device_info();
 
 #ifdef KEY_TEST
+    init_key_kek();
     mock_add_keys();
+    save_all();
+    load_all();
+    
 #endif
 
     //init connection handler.

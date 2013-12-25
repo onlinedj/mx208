@@ -3,6 +3,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
 
@@ -11,9 +13,24 @@
 #include "queue.h"
 #include "data_parser.h"
 
-HEADER_INFO header_info;
-KEYINFO keys[MAX_KEY_SIZE];
-KEKINFO keks[MAX_KEY_SIZE];
+HEADER_INFO *header_info;
+KEYINFO *keys;
+KEKINFO *keks;
+
+int init_key_kek()
+{
+    header_info = (HEADER_INFO *) malloc(sizeof(HEADER_INFO));
+    keys = (KEYINFO *) malloc(MAX_KEY_SIZE*sizeof(KEYINFO));
+    keks = (KEKINFO *) malloc(MAX_KEY_SIZE*sizeof(KEKINFO));
+    bzero(header_info,sizeof(HEADER_INFO));
+    bzero(keys,MAX_KEY_SIZE*sizeof(KEYINFO));
+    bzero(keks,MAX_KEY_SIZE*sizeof(KEKINFO));
+
+    printf("initall header_info:%p\n",header_info);
+    printf("initall keys:%p\n",keys);
+    printf("initall keks:%p\n",keks);
+    return 0;
+}
 
 int print_keyinfo(KEYINFO keyinfo)
 {
@@ -42,27 +59,27 @@ int update_header(int type, int add)
         if(type == TYPE_KEK)
         {
             if(DEBUG) printf("update_header kek increasing\n");
-            header_info.kek_size+=sizeof(KEKINFO);
-            header_info.kek_count++;
+            header_info->kek_size+=sizeof(KEKINFO);
+            header_info->kek_count++;
         }
         else
         {
-            header_info.key_size+=sizeof(KEYINFO);
-            header_info.key_count++; 
-            if(DEBUG) printf("update_header key increasing keycount=%d\n",header_info.key_count);
+            header_info->key_size += sizeof(KEYINFO);
+            header_info->key_count++; 
+            if(DEBUG) printf("update_header key increasing keycount=%d\n",header_info->key_count);
         }
     }else{
         if(type == TYPE_KEK)
         {
             if(DEBUG) printf("update_header kek decreasing\n");
-            header_info.kek_size-=sizeof(KEKINFO);
-            header_info.kek_count--;
+            header_info->kek_size-=sizeof(KEKINFO);
+            header_info->kek_count--;
         }
         else
         {
             if(DEBUG) printf("update_header key decreasing\n");
-            header_info.key_size-=sizeof(KEYINFO);
-            header_info.key_count--; 
+            header_info->key_size-=sizeof(KEYINFO);
+            header_info->key_count--; 
         }
     }
     return 0;
@@ -72,11 +89,11 @@ int add_kek(KEKINFO kekinfo)
 {
     
     int index = kekinfo.index;
-    if(index > 0 && index < MAX_KEY_SIZE &&header_info.kek_count+1<MAX_KEY_SIZE)
+    if(index > 0 && index < MAX_KEY_SIZE && header_info->kek_count+1<=MAX_KEY_SIZE)
     {
-         /*keks[header_info.kek_count].index = index;*/
-         /*memcpy(keks[header_info.kek_count].data,kekinfo,data,KEK_LENGTH);*/
-        keks[header_info.kek_count] = kekinfo;
+         /*keks[header_info->kek_count].index = index;*/
+         /*memcpy(keks[header_info->kek_count].data,kekinfo,data,KEK_LENGTH);*/
+        *(keks+header_info->kek_count) = kekinfo;
     }
     update_header(TYPE_KEK,1);
     return 0;
@@ -87,23 +104,23 @@ int rm_kek(uint32_t index)
     int i;
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<header_info.kek_count;i++)
+        for(i=0;i<header_info->kek_count;i++)
         {
-            if(keks[i].index == index) 
+            if((keks+i)->index == index) 
             {
-                bzero(&keks[i],sizeof(KEKINFO)); 
+                bzero((keks+i),sizeof(KEKINFO)); 
                 break;
             }
         }
-        for(;i<header_info.kek_count;i++)
+        for(;i<header_info->kek_count;i++)
         {
-            if(i+1<header_info.kek_count)
+            if(i+1<header_info->kek_count)
             {
-                keks[i] = keks[i+1];
+                *(keks+i) = *(keks+i+1);
             }
             else 
             {
-                bzero(&keks[i],sizeof(KEKINFO)); 
+                bzero((keks+i),sizeof(KEKINFO)); 
             }
         }
         update_header(TYPE_KEK,0);
@@ -117,11 +134,11 @@ int get_kek(uint32_t index, KEKINFO *kekinfo)
     int i;
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<header_info.kek_count;i++)
+        for(i=0;i<header_info->kek_count;i++)
         {
-            if(keks[i].index == index) 
+            if((keks+i)->index == index) 
             {
-                *kekinfo = keks[i]; 
+                *kekinfo = *(keks+i); 
             }
         }
     }
@@ -132,11 +149,11 @@ int add_key(KEYINFO keyinfo)
 {
     uint32_t type = keyinfo.type;
     uint32_t index = keyinfo.index;
-    if(index > 0 && index < MAX_KEY_SIZE && header_info.key_count+1<=MAX_KEY_SIZE)
+    if(index > 0 && index < MAX_KEY_SIZE && header_info->key_count+1<=MAX_KEY_SIZE)
     {
-         if(DEBUG) printf("adding keyinfo keycount=%d\n",header_info.key_count);
-         keys[header_info.key_count] = keyinfo;
-         keys[header_info.key_count].access = 0;
+         if(DEBUG) printf("adding keyinfo keycount=%d\n",header_info->key_count);
+         *(keys+header_info->key_count) = keyinfo;
+         (keys+header_info->key_count)->access = 0;
     }
     update_header(type,1);
     return 0;
@@ -147,23 +164,23 @@ int rm_key(uint32_t type, uint32_t index)
     int i;
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<header_info.key_count;i++)
+        for(i=0;i<header_info->key_count;i++)
         {
-            if(keys[i].index == index && keys[i].type == type) 
+            if((keys+i)->index == index && (keys+i)->type == type) 
             {
-                bzero(&keys[i],sizeof(KEKINFO)); 
+                bzero(keys+i,sizeof(KEKINFO)); 
                 break;
             }
         }
-        for(;i<header_info.key_count;i++)
+        for(;i<header_info->key_count;i++)
         {
-            if(i+1<header_info.key_count)
+            if(i+1<header_info->key_count)
             {
-                keys[i] = keys[i+1];
+                *(keys+i) = *(keys+i+1);
             }
             else 
             {
-                bzero(&keys[i],sizeof(KEKINFO)); 
+                bzero(keys+i,sizeof(KEKINFO)); 
             }
         }
         update_header(type,0);
@@ -177,9 +194,9 @@ int get_key(uint32_t type, uint32_t index, KEYINFO *keyinfo)
     int i;
     if(index > 0 && index < MAX_KEY_SIZE)
     {
-        for(i=0;i<header_info.key_count;i++)
+        for(i=0;i<header_info->key_count;i++)
         {
-            if(keys[i].index == index && keys[i].type == type) 
+            if((keys+i)->index == index && (keys+i)->type == type) 
             {
                 *keyinfo = keys[i]; 
             }
@@ -202,32 +219,32 @@ int load_all()
         FlashUserInfo userinfo;
         userinfo.addr = SPI_KEY_START;
         userinfo.len = sizeof(HEADER_INFO);
-        userinfo.buf = &header_info;
+        userinfo.buf = header_info;
         int error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         
-        printf("read keyheader errorno=%d\n",error);
+        printf("read keyheader %d %d errorno=%d\n",header_info->key_count,header_info->key_size,error);
 
         userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO);
-        userinfo.len = header_info.key_size;
+        userinfo.len = sizeof(KEYINFO)*MAX_KEY_SIZE;
         userinfo.buf = keys;
         error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         printf("read keys errorno=%d\n",error);
 
-        userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO)+header_info.key_size;
-        userinfo.len = header_info.kek_size;
+        userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO)+sizeof(KEYINFO)*MAX_KEY_SIZE;
+        userinfo.len = sizeof(KEKINFO)*MAX_KEY_SIZE;
         userinfo.buf = keks;
         error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         printf("read keks errorno=%d\n",error);
 
         close(fd);
         int i;
-        for(i=0;i<header_info.key_count;i++)
+        for(i=0;i<header_info->key_count;i++)
         {
-            print_keyinfo(keys[i]); 
+            print_keyinfo(*(keys+i)); 
         }
-        for(i=0;i<header_info.kek_count;i++)
+        for(i=0;i<header_info->kek_count;i++)
         {
-            print_kekinfo(keks[i]); 
+            print_kekinfo(*(keks+i)); 
         }
         return 0;
     }
@@ -251,22 +268,28 @@ int save_all()
 
         FlashUserInfo userinfo;
         userinfo.addr = SPI_KEY_START;
+        printf("saveall header addr:%ld\n",userinfo.addr);
         userinfo.len = sizeof(HEADER_INFO);
-        userinfo.buf = &header_info;
-        int error = ioctl(fd, IOCTL_PCI_FLASH_WRITE, &userinfo);
+        userinfo.buf = header_info;
+        printf("saveall header:%p\n",header_info);
+        int error = ioctl(fd, IOCTL_PCI_FLASH_ERANDWR, &userinfo);
         
-        printf("write keyheader errorno=%d\n",error);
+        printf("write keyheader %d %d errorno=%d\n",header_info->key_count,header_info->key_size,error);
 
         userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO);
-        userinfo.len = header_info.key_size;
+        printf("saveall key addr:%ld\n",userinfo.addr);
+        userinfo.len = MAX_KEY_SIZE*sizeof(KEYINFO);
         userinfo.buf = keys;
-        error = ioctl(fd, IOCTL_PCI_FLASH_WRITE, &userinfo);
+        printf("saveall keys:%p\n",keys);
+        error = ioctl(fd, IOCTL_PCI_FLASH_ERANDWR, &userinfo);
         printf("write keys errorno=%d\n",error);
 
-        userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO)+header_info.key_size;
-        userinfo.len = header_info.kek_size;
+        userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO)+MAX_KEY_SIZE*sizeof(KEYINFO);
+        userinfo.len = MAX_KEY_SIZE*sizeof(KEKINFO);
+        printf("saveall kek addr:%ld\n",userinfo.addr);
         userinfo.buf = keks;
-        error = ioctl(fd, IOCTL_PCI_FLASH_WRITE, &userinfo);
+        printf("saveall keks:%p\n",keks);
+        error = ioctl(fd, IOCTL_PCI_FLASH_ERANDWR, &userinfo);
         printf("write keks errorno=%d\n",error);
 
         close(fd);
@@ -286,7 +309,7 @@ int process_command_key(uint8_t *params, uint8_t *output)
     int process_result = 0;
     HEADER header;
     get_header(&header,&params);
-    printf("process key header.func_id=%d   headerinfo:%d,%d\n",header.func_id,header_info.key_count,header_info.key_size);
+    printf("process key header.func_id=%d   headerinfo:%d,%d\n",header.func_id,header_info->key_count,header_info->key_size);
     switch(header.func_id)
     {
     case GET_KEY_ACCESS:
@@ -384,13 +407,13 @@ int process_command_key(uint8_t *params, uint8_t *output)
 int set_private_key_access(uint32_t index, uint32_t allow)
 {
     int i;
-    for(i=0;i<header_info.key_count;i++)
+    for(i=0;i<header_info->key_count;i++)
     {
-        printf("scan index,index=%d,access=%d\n",keys[i].index,keys[i].access);
-        if(keys[i].index == index) 
+        printf("scan index,index=%d,access=%d\n",(keys+i)->index,(keys+i)->access);
+        if((keys+i)->index == index) 
         {
             printf("found index,set index=%d,access=%d\n",index,allow);
-            keys[i].access = allow; 
+            (keys+i)->access = allow; 
         }
     }
     return 0; 
@@ -399,7 +422,7 @@ int set_private_key_access(uint32_t index, uint32_t allow)
 int check_passwd(const uint8_t *pwd, uint32_t pwd_len)
 {
     if(pwd_len != 8) return 0;
-    uint8_t pwd_inner[8] = {1,2,3,4,5,6,7,8};
+    uint8_t pwd_inner[8] = "12345678";
     return strncmp(pwd,pwd_inner,PWD_MAX_LENGTH);
 }
 int get_private_key_access(
@@ -486,7 +509,7 @@ int export_enc_public_key_ecc(
 int mock_add_keys()
 {
     uint32_t i;
-    bzero(&header_info,sizeof(HEADER_INFO));
+    bzero(header_info,sizeof(HEADER_INFO));
     for(i=0;i<MAX_KEY_SIZE;i++)
     {
         KEYINFO keyinfo;

@@ -4,7 +4,7 @@ set(src_SRCS
   command_handler.c
   queue.c
   device_manager.c
-  algorithm_manager.c
+  algorithm.c
   key_manager.c
   data_parser.c
   )

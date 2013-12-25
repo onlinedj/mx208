@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
                     memcpy(buffer+16,params,sizeof(uint32_t)*2);
                     uint32_t pwd_len = 8;
                     memcpy(buffer+16+8,&pwd_len,sizeof(uint32_t));
-                    uint8_t pwd[8] = {1,2,3,4,5,6,7,8};
+                    uint8_t pwd[8] = "12345678";
                     memcpy(buffer+24+4,pwd,pwd_len);
                     uint32_t len[2] = {4,8};
                     memcpy(buffer+36,len,sizeof(uint32_t)*2);

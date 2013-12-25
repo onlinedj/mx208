@@ -74,6 +74,7 @@ int rm_kek(uint32_t index);
 /*int set_private_key_access(uint32_t index, uint32_t allow);*/
 int load_all();
 int save_all();
+int init_key_kek();
 
 int process_command_key(uint8_t *params, uint8_t *result);
 #endif

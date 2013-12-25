@@ -34,6 +34,7 @@ string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "C_FLAGS = " ${CMAKE_C_FLAGS} " " ${CMAKE_C_FLAGS_${BUILD_TYPE}})
 
 include_directories(include)
+include_directories(sm2_3_4)
 add_subdirectory(sm2_3_4)
 add_subdirectory(src)
 
