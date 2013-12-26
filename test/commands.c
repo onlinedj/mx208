@@ -6,10 +6,12 @@
 
 int main(int argc, const char *argv[])
 {
-    printf("GET_DEVICE_INFO type=%d,id=%d\n",GET_TYPE(GET_DEVICE_INFO),GET_ID(GET_DEVICE_INFO));
-    printf("EXPORT_SIGN_PUB_KEY_RSA type=%d,id=%d\n",GET_TYPE(EXPORT_SIGN_PUB_KEY_RSA),GET_ID(EXPORT_SIGN_PUB_KEY_RSA));
+    printf("GET_DEVICE_INFO type=%d\n",GET_TYPE(FUNID_SDF_GETDEVICEINFO));
+    printf("EXPORT_SIGN_PUB_KEY_RSA type=%d\n",GET_TYPE(FUNID_SDF_EXPORTENCPUBLICKEY_ECC));
+    printf("FUNID_SDF_CALCULATEMAC type=%d\n",GET_TYPE(FUNID_SDF_CALCULATEMAC));
+    printf("FUNID_SDF_CREATEFILE type=%d\n",GET_TYPE(FUNID_SDF_CREATEFILE));
     
-    ECCrefPublicKey key;
+    /*ECCrefPublicKey key;
     key.bits=4;
     uint8_t x[32] = {1,1,1,1};
     memcpy(key.x,x,32);
@@ -28,6 +30,6 @@ int main(int argc, const char *argv[])
     {
         printf("%02x",key_p2->x[i]); 
     }
-    printf("\n");
+    printf("\n");*/
     return 0;
 }
