@@ -36,6 +36,11 @@ int get_header(HEADER *header, uint8_t **buffer)
 int get_data(uint8_t **buffer, uint8_t *result)
 {
     uint32_t data_len = get_int(buffer);
+    if(data_len>BUFFER_SIZE)
+    {
+        printf("data_parser buffer overflow\n"); 
+        return 0;
+    }
     printf("get_data done len=%d\n",data_len);
     memcpy(result, *buffer, data_len);
     *buffer += data_len;
