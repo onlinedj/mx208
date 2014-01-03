@@ -2,7 +2,7 @@
 *
 *     Copyright (C) 2013 Minxin Tech - All Rights Reserved.
 *
-*     FileName: data_parser.h
+*     FileName: data_composer.h
 *         Desc: 
 *       Author: Jacky Yang (yangxinle@minxintech.com)
 *      Version: 0.0.1
@@ -18,8 +18,14 @@
 #define INT_SIZE 4
 #define LONG_SIZE 8
 #endif
-int set_header(uint8_t **buffer, HEADER *header);
+
+int set_header(uint8_t **buffer, HEADER header);
 int set_data(uint8_t **buffer, uint8_t *in, uint32_t in_size);
 uint32_t set_int(uint8_t **buffer, uint32_t data);
 uint64_t set_long(uint8_t **buffer, uint32_t data);
+
+/*int init_composer();
+int get_write_size();
+int get_parameter_size();
+int get_count();*/
 #endif

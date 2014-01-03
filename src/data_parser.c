@@ -18,7 +18,7 @@ uint64_t get_long(uint8_t **buffer)
 {
 //    printf("buffer=%p,bufferp=%p,bufferpp=%p\n",*buffer,buffer,&buffer);
     uint64_t result = GET_LONG(*buffer);
-    printf("result=%u\n",result);
+    printf("result=%lu\n",result);
     *buffer+=LONG_SIZE;
     return result;
 }

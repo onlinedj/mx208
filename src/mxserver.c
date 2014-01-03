@@ -55,7 +55,7 @@ int create_server_socket(uint32_t ip, uint32_t port)
 
 void start_command_threads()
 {
-    uint32_t i = 0;
+    uint64_t i = 0;
     for(i = 0;i < THREAD_COUNT; i++) 
     {
         pthread_t tid;
@@ -95,9 +95,10 @@ int main(int argc, char *argv[])
         conn0_fd = accept(eth0_fd, (struct sockaddr*)NULL, NULL); 
         if(conn0_fd>0)
         {
+            uint64_t tmp = conn0_fd;
             if(DEBUG_SERVER) printf("mxserver conn0_fd=%d\n",conn0_fd);
             pthread_t tid;
-            pthread_create(&tid, NULL, handle_connection, (void*) conn0_fd);
+            pthread_create(&tid, NULL, handle_connection, (void*) tmp);
         }
         /*conn1_fd = accept(eth1_fd, (struct sockaddr*)NULL, NULL); 
         if(conn1_fd>0)

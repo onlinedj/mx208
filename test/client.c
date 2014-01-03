@@ -13,6 +13,7 @@
 
 #include "mx_std.h"
 #include "commands.h"
+#include "data_composer.h"
 
 uint64_t handle;
 
@@ -67,7 +68,7 @@ int main(int argc, char *argv[])
         {
             case 0:
                 {
-                    uint32_t info[4] = {0x00000001,0,0,0};
+                    uint32_t info[4] = {FUNID_SDF_GETDEVICEINFO,0,0,0};
                     int result = send(sockfd, info, sizeof(uint32_t)*4,0); 
                     printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
                     memset(buffer,0,65536);
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
                     printf("\n");
 
                     memset(buffer,0,65536);
-                    uint32_t info[4] = {SDF_ENCRYPT,68,2,0};
+                    uint32_t info[4] = {FUNID_SDF_ENCRYPT,68,2,0};
                     memcpy(buffer,info,16);
                     int key=110,key_s = 4;
                     memcpy(buffer+16,&key_s,4);
@@ -159,7 +160,7 @@ int main(int argc, char *argv[])
                     printf("\n");
 
                     memset(buffer,0,65536);
-                    uint32_t info[4] = {SDF_DECRYPT,68,2,0};
+                    uint32_t info[4] = {FUNID_SDF_DECRYPT,68,2,0};
                     memcpy(buffer,info,16);
                     int key=110,key_s = 4;
                     memcpy(buffer+16,&key_s,4);
@@ -199,8 +200,7 @@ int main(int argc, char *argv[])
                 break;
             case 3:
                 {
-                    uint32_t info[4] = {GET_KEY_ACCESS,sizeof(uint32_t)*5+8,3,0};
-                    printf("get key access=%d\n",GET_KEY_ACCESS);
+                    uint32_t info[4] = {FUNID_SDF_GETPRIVATEKEYACCESSRIGHT,sizeof(uint32_t)*5+8,3,0};
                     memcpy(buffer,info,sizeof(uint32_t)*4);
                     uint32_t params[2] = {4,10};
                     memcpy(buffer+16,params,sizeof(uint32_t)*2);
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
                 break;
             case 4:
                 {
-                    uint32_t info[4] = {RELEASE_KEY_ACCESS,sizeof(uint32_t)*2,1,0};
+                    uint32_t info[4] = {FUNID_SDF_RELEASEPRIVATEKEYACCESSRIGHT,sizeof(uint32_t)*2,1,0};
                     memcpy(buffer,info,sizeof(uint32_t)*4);
                     uint32_t params[2] = {4,10};
                     memcpy(buffer+16,params,sizeof(uint32_t)*2);
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
                 break;
             case 5:
                 {
-                    uint32_t info[4] = {EXPORT_ENC_PUB_KEY_ECC,sizeof(uint32_t)*2,1,0};
+                    uint32_t info[4] = {FUNID_SDF_EXPORTENCPUBLICKEY_ECC,sizeof(uint32_t)*2,1,0};
                     memcpy(buffer,info,sizeof(uint32_t)*4);
                     uint32_t params[2] = {4,10};
                     memcpy(buffer+16,params,sizeof(uint32_t)*2);
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
                 break;
             case 6:
                 {
-                    uint32_t info[4] = {EXPORT_SIGN_PUB_KEY_ECC,sizeof(uint32_t)*2,1,0};
+                    uint32_t info[4] = {FUNID_SDF_EXPORTSIGNPUBLICKEY_ECC,sizeof(uint32_t)*2,1,0};
                     memcpy(buffer,info,sizeof(uint32_t)*4);
                     uint32_t params[2] = {4,10};
                     memcpy(buffer+16,params,sizeof(uint32_t)*2);
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
             case 7:
                 {
                     uint8_t session_key[32]={12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12};
-                    uint32_t info[4] = {IMPORT_SESSION_KEY,sizeof(uint32_t)*3+32,2,0};
+                    uint32_t info[4] = {FUNID_SDF_IMPORTKEY,sizeof(uint32_t)*3+32,2,0};
                     memcpy(buffer,info,sizeof(uint32_t)*4);
                     uint32_t session_len = 32;
                     memcpy(buffer+16,&session_len,sizeof(uint32_t));
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
                 break;
             case 8:
                 {
-                    uint32_t info[4] = {DESTROY_SESSION_KEY,sizeof(uint32_t)*3+32,2,0};
+                    uint32_t info[4] = {FUNID_SDF_DESTORYKEY,sizeof(uint32_t)*3+32,2,0};
                     memcpy(buffer,info,sizeof(uint32_t)*4);
                     uint32_t handle_len = 4;
                     memcpy(buffer+16,&handle_len,sizeof(uint32_t));
@@ -357,6 +357,168 @@ int main(int argc, char *argv[])
                     }
                     memset(buffer,0,65536);
                 
+                }
+                break;
+            case 9:
+                {
+                    uint8_t data[15]= "123456789123456";
+                    uint8_t *tmp = buffer+16;
+                    int total = 0;
+                    int count = 0;
+                    total += set_data(&tmp,data,15);
+                    count++;
+                    uint32_t length = 15;
+                    total += set_int(&tmp,length);
+                    count++;
+                    uint32_t file_size = 20;
+                    total += set_int(&tmp,file_size);
+                    count++;
+                    HEADER header;
+                    header.func_id = FUNID_SDF_CREATEFILE;
+                    header.data_size = total;
+                    header.param_sum = count;
+                    header.reserved = 0;
+                    uint8_t *tb = buffer;
+                    total += set_header(&tb,header);
+                    int result = send(sockfd, buffer, total,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
+                }
+                break;
+            case 10:
+                {
+                    uint8_t data[15]= "123456789123456";
+                    uint8_t *tmp = buffer+16;
+                    int total = 0;
+                    int count = 0;
+                    total += set_data(&tmp,data,15);
+                    count++;
+                    uint32_t length = 15;
+                    total += set_int(&tmp,length);
+                    count++;
+                    /*int file_size = 20;
+                    total += set_int(&tmp,&file_size);
+                    count++;*/
+                    HEADER header;
+                    header.func_id = FUNID_SDF_DELETEFILE;
+                    header.data_size = total;
+                    header.param_sum = count;
+                    header.reserved = 0;
+                    uint8_t *tb = buffer;
+                    total += set_header(&tb,header);
+                    int result = send(sockfd, buffer, total,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                
+                }
+                break;
+            case 11:
+                {
+                    uint8_t data[15]= "123456789123456";
+                    uint8_t *tmp = buffer+16;
+                    int total = 0;
+                    int count = 0;
+                    total += set_data(&tmp,data,15);
+                    count++;
+                    uint32_t length = 15;
+                    total += set_int(&tmp,length);
+                    count++;
+                    uint32_t offset = 40;
+                    total += set_int(&tmp,offset);
+                    count++;
+                    uint32_t file_size = 20;
+                    total += set_int(&tmp,file_size);
+                    count++;
+                    uint8_t data2[20] = "abcdefghijklmnopqrst";
+                    total += set_data(&tmp,data2,20);
+                    count++;
+                    HEADER header;
+                    header.func_id = FUNID_SDF_WRITEFILE;
+                    header.data_size = total;
+                    header.param_sum = count;
+                    header.reserved = 0;
+                    uint8_t *tb = buffer;
+                    total += set_header(&tb,header);
+                    int result = send(sockfd, buffer, total,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        
+                        break;
+                    }
+                    memset(buffer,0,65536);
+                }
+                break;
+            case 12:
+                {
+                    uint8_t data[15]= "123456789123456";
+                    uint8_t *tmp = buffer+16;
+                    int total = 0;
+                    int count = 0;
+                    total += set_data(&tmp,data,15);
+                    count++;
+                    uint32_t length = 15;
+                    total += set_int(&tmp,length);
+                    count++;
+                    uint32_t offset = 40;
+                    total += set_int(&tmp,offset);
+                    count++;
+                    uint32_t file_size = 20;
+                    total += set_int(&tmp,file_size);
+                    count++;
+                    HEADER header;
+                    header.func_id = FUNID_SDF_READFILE;
+                    header.data_size = total;
+                    header.param_sum = count;
+                    header.reserved = 0;
+                    uint8_t *tb = buffer;
+                    total += set_header(&tb,header);
+                    int result = send(sockfd, buffer, total,0); 
+                    printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
+                    memset(buffer,0,65536);
+                    while(1)
+                    {
+                        uint32_t *tmp = (uint32_t *)buffer;
+                        int n = recv(sockfd,buffer,65536,0); 
+                        printf("recv success!recev=%d;header:%u,%u,%u,%u;\n",n,tmp[0],tmp[1],tmp[2],tmp[3]);
+                        HEADER head;
+                        get_header(&head,&buffer);
+                        int len = get_int(&buffer);
+                        uint8_t tm_buffer[BUFFER_MAX];
+                        int read = get_data(&buffer,tm_buffer);
+                        printf("read:\n"); 
+                        int i = 0;
+                        while(i<BUFFER_MAX)
+                        {
+                            printf("%c",tm_buffer[i]); 
+                        }
+                        printf("\n");
+                        break;
+                    }
+                    memset(buffer,0,65536);
                 }
                 break;
             default:

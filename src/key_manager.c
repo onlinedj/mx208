@@ -219,20 +219,20 @@ int load_all()
         FlashUserInfo userinfo;
         userinfo.addr = SPI_KEY_START;
         userinfo.len = sizeof(HEADER_INFO);
-        userinfo.buf = header_info;
+        userinfo.buf = (uint32_t *)header_info;
         int error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         
         printf("read keyheader %d %d errorno=%d\n",header_info->key_count,header_info->key_size,error);
 
         userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO);
         userinfo.len = sizeof(KEYINFO)*MAX_KEY_SIZE;
-        userinfo.buf = keys;
+        userinfo.buf = (uint32_t *)keys;
         error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         printf("read keys errorno=%d\n",error);
 
         userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO)+sizeof(KEYINFO)*MAX_KEY_SIZE;
         userinfo.len = sizeof(KEKINFO)*MAX_KEY_SIZE;
-        userinfo.buf = keks;
+        userinfo.buf = (uint32_t *)keks;
         error = ioctl(fd, IOCTL_PCI_FLASH_READ, &userinfo);
         printf("read keks errorno=%d\n",error);
 
@@ -268,26 +268,26 @@ int save_all()
 
         FlashUserInfo userinfo;
         userinfo.addr = SPI_KEY_START;
-        printf("saveall header addr:%ld\n",userinfo.addr);
+        printf("saveall header addr:%u\n",userinfo.addr);
         userinfo.len = sizeof(HEADER_INFO);
-        userinfo.buf = header_info;
+        userinfo.buf = (uint32_t *)header_info;
         printf("saveall header:%p\n",header_info);
         int error = ioctl(fd, IOCTL_PCI_FLASH_ERANDWR, &userinfo);
         
         printf("write keyheader %d %d errorno=%d\n",header_info->key_count,header_info->key_size,error);
 
         userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO);
-        printf("saveall key addr:%ld\n",userinfo.addr);
+        printf("saveall key addr:%u\n",userinfo.addr);
         userinfo.len = MAX_KEY_SIZE*sizeof(KEYINFO);
-        userinfo.buf = keys;
+        userinfo.buf = (uint32_t *)keys;
         printf("saveall keys:%p\n",keys);
         error = ioctl(fd, IOCTL_PCI_FLASH_ERANDWR, &userinfo);
         printf("write keys errorno=%d\n",error);
 
         userinfo.addr = SPI_KEY_START+sizeof(HEADER_INFO)+MAX_KEY_SIZE*sizeof(KEYINFO);
         userinfo.len = MAX_KEY_SIZE*sizeof(KEKINFO);
-        printf("saveall kek addr:%ld\n",userinfo.addr);
-        userinfo.buf = keks;
+        printf("saveall kek addr:%u\n",userinfo.addr);
+        userinfo.buf = (uint32_t *)keks;
         printf("saveall keks:%p\n",keks);
         error = ioctl(fd, IOCTL_PCI_FLASH_ERANDWR, &userinfo);
         printf("write keks errorno=%d\n",error);
@@ -312,7 +312,7 @@ int process_command_key(uint8_t *params, uint8_t *output)
     printf("process key header.func_id=%d   headerinfo:%d,%d\n",header.func_id,header_info->key_count,header_info->key_size);
     switch(header.func_id)
     {
-    case GET_KEY_ACCESS:
+    case FUNID_SDF_GETPRIVATEKEYACCESSRIGHT:
         {
             uint32_t index_size = get_int(&params);
             uint32_t index = get_int(&params);
@@ -321,63 +321,63 @@ int process_command_key(uint8_t *params, uint8_t *output)
             uint32_t pwd_len_len = get_int(&params);
             uint32_t pwd_len = get_int(&params);
             uint32_t result = get_private_key_access(index,pwd,pwd_len);
-            uint32_t out_header[4] = {GET_KEY_ACCESS,0,0,result};
+            uint32_t out_header[4] = {FUNID_SDF_GETPRIVATEKEYACCESSRIGHT,0,0,result};
             memcpy(output,out_header,sizeof(uint32_t)*4);
             process_result = sizeof(uint32_t)*4;
             break;
         }
-    case RELEASE_KEY_ACCESS:
+    case FUNID_SDF_RELEASEPRIVATEKEYACCESSRIGHT:
         {
             uint32_t index_size = get_int(&params);
             uint32_t index = get_int(&params);
             uint32_t result = release_private_key_access(index);
-            uint32_t out_header[4] = {RELEASE_KEY_ACCESS,0,0,result};
+            uint32_t out_header[4] = {FUNID_SDF_RELEASEPRIVATEKEYACCESSRIGHT,0,0,result};
             memcpy(output,out_header,sizeof(uint32_t)*4);
             process_result = sizeof(uint32_t)*4;
             break;
         }
-    case EXPORT_SIGN_PUB_KEY_RSA:
+    case FUNID_SDF_EXPORTSIGNPUBLICKEY_RSA:
         //TODO
         break;
-    case EXPORT_ENC_PUB_KEY_RSA:
+    case FUNID_SDF_EXPORTENCPUBLICKEY_RSA:
         //TODO
         break;
-    case EXPORT_SIGN_PUB_KEY_ECC:
+    case FUNID_SDF_EXPORTSIGNPUBLICKEY_ECC:
         {
             uint32_t index_size = get_int(&params);
             uint32_t index = get_int(&params);
             ECCrefPublicKey key;
             export_sign_public_key_ecc(index,&key);
             uint32_t out_data_len = sizeof(ECCrefPublicKey);
-            uint32_t out_header[4] = {EXPORT_SIGN_PUB_KEY_ECC,sizeof(uint32_t)+out_data_len,1,0};
+            uint32_t out_header[4] = {FUNID_SDF_EXPORTSIGNPUBLICKEY_ECC,sizeof(uint32_t)+out_data_len,1,0};
             memcpy(output,out_header,sizeof(uint32_t)*4);
             memcpy(output+16,&out_data_len,sizeof(uint32_t));
             memcpy(output+20,&key,out_data_len);
             process_result = sizeof(uint32_t)*5+out_data_len;
             break;
         }
-    case EXPORT_ENC_PUB_KEY_ECC:
+    case FUNID_SDF_EXPORTENCPUBLICKEY_ECC:
         {
             uint32_t index_size = get_int(&params);
             uint32_t index = get_int(&params);
             ECCrefPublicKey key;
             export_enc_public_key_ecc(index,&key);
             uint32_t out_data_len = sizeof(ECCrefPublicKey);
-            uint32_t out_header[4] = {EXPORT_SIGN_PUB_KEY_ECC,sizeof(uint32_t)+out_data_len,1,0};
+            uint32_t out_header[4] = {FUNID_SDF_EXPORTENCPUBLICKEY_ECC,sizeof(uint32_t)+out_data_len,1,0};
             memcpy(output,out_header,sizeof(uint32_t)*4);
             memcpy(output+16,&out_data_len,sizeof(uint32_t));
             memcpy(output+20,&key,out_data_len);
             process_result = sizeof(uint32_t)*5+out_data_len;
             break;
         }
-    case IMPORT_SESSION_KEY:
+    case FUNID_SDF_IMPORTKEY:
         {
             uint8_t buffer[BUFFER_MAX];
             uint32_t key_size = get_data(&params,buffer);
             void *handle;
             import_session_key(buffer,key_size,&handle);
             printf("import session key %p %016lx\n",handle,(uint64_t)handle);
-            uint32_t out_header[4] = {IMPORT_SESSION_KEY,sizeof(uint32_t)*2,1,0};
+            uint32_t out_header[4] = {FUNID_SDF_IMPORTKEY,sizeof(uint32_t)*2,1,0};
             memcpy(output,out_header,sizeof(uint32_t)*4);
             memcpy(output+16,&key_size,sizeof(uint32_t));
             memcpy(output+20,&handle,sizeof(uint64_t));
@@ -385,13 +385,13 @@ int process_command_key(uint8_t *params, uint8_t *output)
             break;
         }
         
-    case DESTROY_SESSION_KEY:
+    case FUNID_SDF_DESTORYKEY:
         {
             uint32_t handle_size = get_int(&params);
             uint64_t handle = get_long(&params);
             uint32_t result = destroy_session_key((void*)handle);
 
-            uint32_t out_header[4] = {DESTROY_SESSION_KEY,0,0,result};
+            uint32_t out_header[4] = {FUNID_SDF_DESTORYKEY,0,0,result};
             memcpy(output,out_header,sizeof(uint32_t)*4);
             process_result = sizeof(uint32_t)*4;
             break;

@@ -7,13 +7,20 @@ extern "C" {
 
 #include "mxpciio.h"
 
+/******************************************************
+ * FlashUserInfo - For User Read/Write Flash          *
+ *  @addr:  Flash Chip Address,                       *
+ *			Address range 0x0000 0000h - 0x007F FFFFh *    
+ *  @len:   Length                                    *
+ *  @buf:   Data Pointer                              *
+ *******************************************************/
 typedef struct flashuserinfo {
 	unsigned int addr;
 	unsigned int len;
 	unsigned int *buf;
 }FlashUserInfo;
 
-
+/*********** IOCTL Command Define *************/
 #define IOCTL_PCI_FLASH_READ		0x03000001
 #define IOCTL_PCI_FLASH_FASTRD		0x03000002
 #define IOCTL_PCI_FLASH_DORD		0x03000003

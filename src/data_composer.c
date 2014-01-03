@@ -3,10 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
+/*static int total = 0;
+static int count = 0;
+static uint8_t **mptr;*/
+
 int set_header(uint8_t **buffer,HEADER header)
 {
    memcpy(*buffer,&header,sizeof(HEADER)); 
-   *buffer+=sizeof(HEADER);
    return sizeof(HEADER);
 }
 int set_data(uint8_t **buffer, uint8_t *in, uint32_t in_size)
@@ -36,3 +39,22 @@ uint64_t set_long(uint8_t **buffer, uint32_t data)
     return INT_SIZE+LONG_SIZE;
 }
 
+/*int init_composer(uint8_t **ptr)
+{
+    
+    total = 0;
+    count = 0;
+    mptr = ptr;
+}
+int get_write_size()
+{
+    return total+sizeof(HEADER);
+}
+int get_parameter_size()
+{
+    return total;
+}
+int get_count()
+{
+    return count;
+}*/

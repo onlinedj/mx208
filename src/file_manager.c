@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #define FILE_PATH "/home/jacky/"
 int create_file(uint8_t *name,uint32_t len, uint32_t file_size);
@@ -45,10 +46,10 @@ int read_file(uint8_t *name,uint32_t len, uint32_t offset, uint32_t size, uint8_
     int real_offset = lseek(fd,offset,SEEK_SET);
     if(real_offset>=0)
     {
-        int read = read(fd,out,size);
-        if(read == size)
+        int readed = read(fd,out,size);
+        if(readed == size)
         {
-            return read; 
+            return readed; 
         }
         else
         {
@@ -68,10 +69,10 @@ int write_file(uint8_t *name,uint32_t len, uint32_t offset, uint32_t size, const
    int real_offset = lseek(fd,offset,SEEK_SET);
    if(real_offset>=0)
    {
-       int write = write(fd,in,size);
-       if(write == size)
+       int writed = write(fd,in,size);
+       if(writed == size)
        {
-           return write; 
+           return writed; 
        }
        else
        {
@@ -100,8 +101,8 @@ int process_command_file(uint8_t *params, uint8_t *result)
     {
     case FUNID_SDF_CREATEFILE:
         {
-            int result = get_data(&params,buffer);
-            if(result>0)
+            int re = get_data(&params,buffer);
+            if(re>0)
             {
                 uint32_t buffer_size = get_int(&params);
                 buffer[sizeof(FILE_PATH)-1+buffer_size] = '\0';
@@ -121,8 +122,8 @@ int process_command_file(uint8_t *params, uint8_t *result)
         }
     case FUNID_SDF_DELETEFILE:
         {
-            int result = get_data(&params,buffer);
-            if(result>0)
+            int re = get_data(&params,buffer);
+            if(re>0)
             {
                 uint32_t buffer_size = get_int(&params);
                 buffer[sizeof(FILE_PATH)-1+buffer_size] = '\0';
@@ -142,8 +143,8 @@ int process_command_file(uint8_t *params, uint8_t *result)
         }
     case FUNID_SDF_READFILE:
         {
-            int result = get_data(&params,buffer);
-            if(result>0)
+            int re = get_data(&params,buffer);
+            if(re>0)
             {
                 uint32_t buffer_size = get_int(&params);
                 buffer[sizeof(FILE_PATH)-1+buffer_size] = '\0';
@@ -170,8 +171,8 @@ int process_command_file(uint8_t *params, uint8_t *result)
         }
     case FUNID_SDF_WRITEFILE:
         {
-            int result = get_data(&params,buffer);
-            if(result>0)
+            int re = get_data(&params,buffer);
+            if(re>0)
             {
                 uint32_t buffer_size = get_int(&params);
                 buffer[sizeof(FILE_PATH)-1+buffer_size] = '\0';

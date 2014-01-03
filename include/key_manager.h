@@ -1,3 +1,16 @@
+/********************************************************************************
+*
+*     Copyright (C) 2013 Minxin Tech - All Rights Reserved.
+*
+*     FileName: key_manager.h
+*         Desc: 
+*       Author: Jacky Yang (yangxinle@minxintech.com)
+*      Version: 0.0.1
+*   LastChange: 2014-01-02 15:20:58
+*      History:
+*
+********************************************************************************/
+
 #ifndef KEY_MANAGER_H
 #define KEY_MANAGER_H
 

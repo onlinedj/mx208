@@ -12,7 +12,7 @@
 void *handle_connection(void* arg)
 {
     uint32_t connfd;
-    connfd = (uint32_t)arg;
+    connfd = (uint32_t)(uint64_t)arg;
     if(DEBUG_CONN) printf("current thread %lu , connfd=%u\n", (unsigned long)pthread_self(), connfd);
     uint8_t buffer[BUFFER_MAX*sizeof(uint8_t)] ;
     while(1)

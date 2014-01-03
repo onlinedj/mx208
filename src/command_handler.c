@@ -9,7 +9,8 @@
 
 #include "key_manager.h"
 #include "device_manager.h"
-#include "algorithm_manager.h"
+#include "file_manager.h"
+#include "algorithm.h"
 
 
 static QUEUE *queues[THREAD_COUNT];
@@ -51,9 +52,10 @@ int process_command(int type, uint8_t *params, uint8_t *result)
         total = process_command_key(params, result);
         break;
     case TYPE_ALGORITHM:
-        total = process_command_algorithm(params,result);
+        //total = process_command_algorithm(params,result);
         break;
     case TYPE_FILE:
+        total = process_command_file(params, result);
         break;
     default:
         break;
@@ -64,7 +66,7 @@ int process_command(int type, uint8_t *params, uint8_t *result)
 void* handle_command(void *arg)
 {
     uint32_t type;
-    type = (uint32_t)arg;
+    type = (uint32_t)(uint64_t)arg;
     uint8_t buffer[BUFFER_MAX];
     uint8_t output[BUFFER_MAX];
     memset(buffer,0,BUFFER_SIZE);
