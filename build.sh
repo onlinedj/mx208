@@ -1,7 +1,6 @@
 #!/bin/sh
 
 #set -x
-rm -rf build/
 ./sm2_3_4/mex 4 ./sm2_3_4/amd64 ./sm2_3_4/mrcomba
 SOURCE_DIR=`pwd`
 BUILD_DIR=${BUILD_DIR:-build}

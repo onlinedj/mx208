@@ -19,6 +19,7 @@ int write_file(uint8_t *name,uint32_t len, uint32_t offset, uint32_t size, const
 
 int create_file(uint8_t *name,uint32_t len, uint32_t file_size)
 {
+    
     int fd = open(name, O_CREAT,S_IRWXU);
     if(fd>0){
         return 0; 
@@ -185,7 +186,7 @@ int process_command_file(uint8_t *params, uint8_t *result)
                 if(size>0)
                 {
                     HEADER header;
-                    header.func_id = FUNID_SDF_READFILE;
+                    header.func_id = FUNID_SDF_WRITEFILE;
                     header.data_size = 0;
                     header.param_sum = 0;
                     header.reserved = 0;

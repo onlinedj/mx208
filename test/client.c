@@ -365,9 +365,9 @@ int main(int argc, char *argv[])
                     uint8_t *tmp = buffer+16;
                     int total = 0;
                     int count = 0;
-                    total += set_data(&tmp,data,15);
-                    count++;
                     uint32_t length = 15;
+                    total += set_data(&tmp,data,length);
+                    count++;
                     total += set_int(&tmp,length);
                     count++;
                     uint32_t file_size = 20;
@@ -380,6 +380,16 @@ int main(int argc, char *argv[])
                     header.reserved = 0;
                     uint8_t *tb = buffer;
                     total += set_header(&tb,header);
+                    uint32_t *tmp3 = (uint32_t *)buffer;
+                    printf("buffer:%u,%s\n",tmp3[4],buffer+20);
+                    uint32_t *tmp4 = (uint32_t *)(buffer+35);
+                    printf("buffer:%u,%u\n",tmp4[0],tmp4[1],tmp4[2],tmp4[3]);
+                    uint32_t *tmp2 = (uint32_t *)buffer;
+                    printf("header send=:%u,%u,%u,%u,%u;\n",tmp2[0],tmp2[1],tmp2[2],tmp2[3],tmp2[4]);
+                    uint8_t data2[16];
+                    memcpy(data2,buffer+20,15);
+                    data2[15] = '\0';
+                    printf("name:%s",data2);
                     int result = send(sockfd, buffer, total,0); 
                     printf("%d send result=%d,errno=%d\n",sockfd,result,errno);
                     memset(buffer,0,65536);

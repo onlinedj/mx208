@@ -9,14 +9,16 @@ static uint8_t **mptr;*/
 
 int set_header(uint8_t **buffer,HEADER header)
 {
-   memcpy(*buffer,&header,sizeof(HEADER)); 
-   return sizeof(HEADER);
+   memcpy(*buffer,&header,16); 
+   return 16;
 }
 int set_data(uint8_t **buffer, uint8_t *in, uint32_t in_size)
 {
     memcpy(*buffer,&in_size,INT_SIZE);
+    printf("in_size:%u\n",**buffer);
     *buffer+=INT_SIZE;
     memcpy(*buffer,in,in_size);
+    printf("in:%s\n",*buffer);
     *buffer+=in_size;
     return INT_SIZE+in_size;
 }
